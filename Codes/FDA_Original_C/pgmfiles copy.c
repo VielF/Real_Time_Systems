@@ -1,109 +1,112 @@
 #include "pgmfiles.h"
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-/* funções utilitárias de tempo */
-static inline long long ts_diff_ns(struct timespec end, struct timespec start){
-    long long s = (long long)(end.tv_sec - start.tv_sec)*1000000000LL;
-    s += (end.tv_nsec - start.tv_nsec);
-    return s;
-}
-static inline struct timespec now_monotonic(void){
-    struct timespec t; 
-    clock_gettime(CLOCK_MONOTONIC, &t); 
-    return t;
-}
 
 /* Read a 8 bit .PGM into a matrix
    allocates memory for the matrix too. */
+
+
 long int read8bitPGM(eightBitPGMImage *PGMImage)
 {
   char c;
   int x,y;
   FILE *filein;
-  struct timespec t0, t1;
-
-  t0 = now_monotonic();
 
   /* open filein */
-  if ((filein = fopen(PGMImage->fileName,"r")) == NULL) return (PGMFileOpenError); 
   
+  if ((filein = fopen(PGMImage->fileName,"r")) == NULL) return (PGMFileOpenError); 
+ 
   /* read magic value */
+ 
   if (((c = getc(filein)) != 'P') || ((c = getc(filein)) != '2')) return(PGMFileFormatError);
+
   while ((c = getc(filein)) != '\n');
 
   /* read comments */   
+
   while ((c = getc(filein)) == '#')
     while ((c = getc(filein)) != '\n');
     
   /* read image width */
+  
   PGMImage->y = 0;
   do
     if ((c >= '0') && (c <= '9'))
       PGMImage->y = PGMImage->y * 10 + (c - '0');
   while ((c = getc(filein)) != ' ');
 
+	printf("PGMImage->y = %d\n", PGMImage->y);
   /* read image height */
+
   PGMImage->x = 0;
   do
     if ((c >= '0') && (c <= '9'))
       PGMImage->x = PGMImage->x * 10 + (c - '0');
   while ((c = getc(filein)) != ' ');
     
+	printf("PGMImage->x = %d\n", PGMImage->x);
   /* read comments */   
+  
   while ((c = getc(filein)) == '#')
     while ((c = getc(filein)) != '\n');
     
+
   /* read image maxGrey */
-  PGMImage->max =0;
+
+ PGMImage->max =0;
   do
     if (c != ' ')
       PGMImage->max = PGMImage->max*10 + (c - '0');
   while ((c = getc(filein)) != '\n');
 
+	printf("PGMImage->max = %d\n", PGMImage->max);
+
   if (PGMImage->max > 255) return(PGMFileDataIsnt8bit);
 
   /* alloc space in memory */
+
   if ((PGMImage->imageData =  (char*) malloc(((PGMImage->x * PGMImage->y) + 1) * sizeof(char) )) == NULL)
       return(PGMMemoryExausted);
 
-  /* read image pixels */
+  /* read image */
+
   for (x = 0 ; x < PGMImage->x ; x++)
     for (y = 0 ; y < PGMImage->y ; y++)
-    {
-        unsigned int ch; 
-        fscanf(filein,"%u ",&ch);
-        *(PGMImage->imageData + x*PGMImage->y + y) = ch;
-    }
+	{
+		unsigned int ch; 
+		fscanf(filein,"%u ",&ch);
+	    *(PGMImage->imageData + x*PGMImage->y + y) = ch;
+	}
 
   /* close filein */
-  fclose(filein);
 
-  t1 = now_monotonic();
-  printf("[Tempo leitura PGM] %lld ns (%.6f ms)\n", 
-         ts_diff_ns(t1,t0), (double)ts_diff_ns(t1,t0)/1e6);
+  fclose(filein);
 
   return(PGMImage->y * PGMImage->x);
 }
 
 long int write8bitPGM(eightBitPGMImage *PGMImage)
 {
+
   int x,y;
   FILE  *fileout;
-  struct timespec t0, t1;
 
-  t0 = now_monotonic();
-
-  /* open fileout */     
+  /* open fileout */
+     
   if ((fileout = fopen(PGMImage->fileName, "w")) == NULL) return(PGMFileOpenError);
 
   /* write magic value */
+  
   fprintf(fileout, "P5\n");
 
-  /* write width / height / max value */
+  /* write width */
+  
   fprintf(fileout,"%d\n", PGMImage->y);
+
+  /* write height */
+  
   fprintf(fileout,"%d\n", PGMImage->x);
+
+  /* write max value */
+  
   fprintf(fileout,"%d\n", PGMImage->max);   
 
   /* write image */
@@ -112,12 +115,8 @@ long int write8bitPGM(eightBitPGMImage *PGMImage)
       putc(*(PGMImage->imageData + x*PGMImage->y + y), fileout);
       
   /* close fileout */
+
   fclose(fileout);
-
-  t1 = now_monotonic();
-  printf("[Tempo escrita PGM] %lld ns (%.6f ms)\n", 
-         ts_diff_ns(t1,t0), (double)ts_diff_ns(t1,t0)/1e6);
-
   return(PGMImage->x * PGMImage->y);
 }
 

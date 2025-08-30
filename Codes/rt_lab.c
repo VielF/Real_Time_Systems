@@ -65,8 +65,8 @@ typedef struct {
    - T3: esporádica, firm, min IA=200ms, C~15ms, D=60ms, prioridade baixa
 */
 static task_cfg_t g_cfg[] = {
-    { "T1", PERIODIC,  DEADLINE_HARD, 50,  0, 10, 50, 80, 0, 0, 0 },
-    { "T2", PERIODIC,  DEADLINE_SOFT, 80,  0, 20, 80, 60, 0, 0, 0 },
+    { "T1", PERIODIC,  DEADLINE_HARD, 50,  0, 10, 50, 60, 0, 0, 0 },
+    { "T2", PERIODIC,  DEADLINE_SOFT, 80,  0, 35, 80, 80, 0, 0, 0 },
     { "T3", SPORADIC,  DEADLINE_FIRM,  0, 200, 15, 60, 40, 0, 0, 0 },
 };
 enum { NT = sizeof(g_cfg)/sizeof(g_cfg[0]) };
@@ -104,7 +104,7 @@ static int run_job(task_cfg_t* cfg, const struct timespec arrival)
     local += 1;                 // trabalho "no recurso"
     g_shared_value = local;
     /* pequena permanência na SC para evidenciar bloqueio */
-    struct timespec sc_sleep = { .tv_sec = 0, .tv_nsec = ns_from_ms(2) };
+    struct timespec sc_sleep = { .tv_sec = 0, .tv_nsec = ns_from_ms(6) };
     clock_nanosleep(CLOCK_MONOTONIC, 0, &sc_sleep, NULL);
     pthread_mutex_unlock(&g_shared_mutex);
 
@@ -124,6 +124,7 @@ static int run_job(task_cfg_t* cfg, const struct timespec arrival)
 
     if (missed) atomic_fetch_add(&cfg->misses, 1);
     return missed;
+
 }
 
 /* =========================
