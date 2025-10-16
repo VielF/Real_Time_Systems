@@ -1,7 +1,7 @@
 
 # Experimentos de Rede — Tempo Real, NTP e TCP
 
-Este pacote demonstra, de forma prática, os principais conceitos de redes de computadores:
+Está prática tem como objetivo demonstrar:
 - Comunicação **tempo real (soft real-time)** e deadlines.
 - Diferença de relógios e **sincronização de tempo** (offset e drift).
 - Funcionamento de **protocolos UDP e TCP**.
